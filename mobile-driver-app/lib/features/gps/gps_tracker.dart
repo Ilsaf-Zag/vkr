@@ -43,7 +43,6 @@ class GpsTracker {
         'recorded_at': DateTime.now().toIso8601String(),
       });
     } catch (_) {
-      // GPS errors should not block the driver's workflow screen.
     }
   }
 

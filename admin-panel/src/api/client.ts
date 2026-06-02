@@ -23,12 +23,10 @@ apiClient.interceptors.response.use(
   (error) => {
     const status = error?.response?.status;
     if (status === 401 || status === 403) {
-      // очистить локальную сессию и перенаправить на логин
       localStorage.removeItem('azyk_admin_token');
       try {
         window.location.href = '/login';
-      } catch (e) {
-        // ignore
+      } catch {
       }
     }
 

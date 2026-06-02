@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Admin\CrudPlaceholderController;
+use App\Http\Controllers\Admin\AdminResourceController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GpsController as AdminGpsController;
 use App\Http\Controllers\Admin\MedicalInspectionController;
@@ -58,16 +58,16 @@ Route::prefix('admin')
         Route::get('dashboard', DashboardController::class);
 
         Route::middleware('role:admin')->group(function () {
-            Route::apiResource('users', CrudPlaceholderController::class);
-            Route::post('users/{id}/change-password', [CrudPlaceholderController::class, 'changePassword']);
-            Route::get('audit-logs', [CrudPlaceholderController::class, 'index']);
+            Route::apiResource('users', AdminResourceController::class);
+            Route::post('users/{id}/change-password', [AdminResourceController::class, 'changePassword']);
+            Route::get('audit-logs', [AdminResourceController::class, 'index']);
         });
 
         Route::middleware('role:admin,dispatcher')->group(function () {
-            Route::apiResource('drivers', CrudPlaceholderController::class);
-            Route::apiResource('vehicles', CrudPlaceholderController::class)->except(['index', 'show']);
-            Route::apiResource('work-orders', CrudPlaceholderController::class);
-            Route::post('drivers/{id}/change-password', [CrudPlaceholderController::class, 'changePassword']);
+            Route::apiResource('drivers', AdminResourceController::class);
+            Route::apiResource('vehicles', AdminResourceController::class)->except(['index', 'show']);
+            Route::apiResource('work-orders', AdminResourceController::class);
+            Route::post('drivers/{id}/change-password', [AdminResourceController::class, 'changePassword']);
 
             Route::get('waybills', [WaybillController::class, 'index']);
             Route::get('waybills/{waybill}', [WaybillController::class, 'show']);
@@ -77,15 +77,15 @@ Route::prefix('admin')
 
             Route::get('gps/current', [AdminGpsController::class, 'current']);
             Route::get('gps/history', [AdminGpsController::class, 'history']);
-            Route::get('fuel-logs', [CrudPlaceholderController::class, 'index']);
+            Route::get('fuel-logs', [AdminResourceController::class, 'index']);
 
             Route::get('reports/{type}', [ReportController::class, 'show']);
             Route::get('reports/{type}/export', [ReportController::class, 'export']);
         });
 
         Route::middleware('role:admin,dispatcher,mechanic')->group(function () {
-            Route::get('vehicles', [CrudPlaceholderController::class, 'index']);
-            Route::get('vehicles/{id}', [CrudPlaceholderController::class, 'show']);
+            Route::get('vehicles', [AdminResourceController::class, 'index']);
+            Route::get('vehicles/{id}', [AdminResourceController::class, 'show']);
         });
 
         Route::middleware('role:admin,dispatcher,medic')->group(function () {
