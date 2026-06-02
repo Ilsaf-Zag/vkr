@@ -12,6 +12,10 @@ use InvalidArgumentException;
 
 class WaybillStateService
 {
+    public function __construct(private readonly OdometerControlService $odometerControl)
+    {
+    }
+
     public function findCurrentWorkOrder(Driver $driver): ?WorkOrder
     {
         return WorkOrder::query()
@@ -22,13 +26,13 @@ class WaybillStateService
             ->first();
     }
 
-    public function openFromWorkOrder(Driver $driver, WorkOrder $workOrder, ?int $odometerStart = null): Waybill
+    public function openFromWorkOrder(Driver $driver, WorkOrder $workOrder): Waybill
     {
         if ($workOrder->driver_id !== $driver->id) {
             throw new InvalidArgumentException('План-наряд назначен другому водителю.');
         }
 
-        return DB::transaction(function () use ($workOrder, $odometerStart) {
+        return DB::transaction(function () use ($workOrder) {
             $waybill = Waybill::query()->firstOrCreate(
                 ['work_order_id' => $workOrder->id],
                 [
@@ -39,7 +43,7 @@ class WaybillStateService
                     'vehicle_id' => $workOrder->vehicle_id,
                     'route_name' => $workOrder->route_name,
                     'status' => WaybillStatus::Opened,
-                    'odometer_start' => $odometerStart,
+                    'odometer_start' => null,
                     'opened_at' => now(),
                 ],
             );
@@ -82,6 +86,7 @@ class WaybillStateService
     public function startShift(Waybill $waybill): Waybill
     {
         $this->ensureStatus($waybill, WaybillStatus::InitialPrinted);
+        $this->ensureOdometerCaptureConfirmed($waybill, 'start');
 
         $waybill->update([
             'status' => WaybillStatus::ShiftInProgress,
@@ -93,14 +98,13 @@ class WaybillStateService
         return $waybill->refresh();
     }
 
-    public function finishTrip(Waybill $waybill, ?int $odometerEnd = null): Waybill
+    public function finishTrip(Waybill $waybill): Waybill
     {
         $this->ensureStatus($waybill, WaybillStatus::ShiftInProgress);
 
         $waybill->update([
             'status' => WaybillStatus::ReturnStarted,
             'shift_finished_at' => now(),
-            'odometer_end' => $odometerEnd,
         ]);
 
         return $waybill->refresh();
@@ -122,6 +126,7 @@ class WaybillStateService
     {
         return DB::transaction(function () use ($waybill) {
             $this->ensureStatus($waybill, WaybillStatus::FinalPrinted);
+            $this->odometerControl->ensureCanClose($waybill);
 
             $waybill->update([
                 'status' => WaybillStatus::Closed,
@@ -164,12 +169,33 @@ class WaybillStateService
             ? $waybill->status
             : WaybillStatus::from($waybill->status);
 
+        $waybill->load(['driver', 'vehicle', 'workOrder', 'fuelLogs', 'odometerCaptures.file']);
+        $step = $status->mobileStep();
+
+        if ($status === WaybillStatus::Opened && ! $this->odometerControl->hasConfirmedCapture($waybill, 'start')) {
+            $step = 'start_odometer';
+        }
+
+        if ($status === WaybillStatus::ReturnStarted && ! $this->odometerControl->hasConfirmedCapture($waybill, 'finish')) {
+            $step = 'finish_odometer';
+        }
+
         return [
-            'step' => $status->mobileStep(),
-            'waybill' => $waybill->load(['driver', 'vehicle', 'workOrder', 'fuelLogs']),
+            'step' => $step,
+            'waybill' => $waybill,
             'work_order' => $workOrder,
             'blocked' => $status->blocksDriver(),
+            'odometer_control' => $this->odometerControl->controlPayload($waybill),
         ];
+    }
+
+    public function ensureOdometerCaptureConfirmed(Waybill $waybill, string $captureType): void
+    {
+        if (! $this->odometerControl->hasConfirmedCapture($waybill, $captureType)) {
+            $label = $captureType === 'start' ? 'начального' : 'конечного';
+
+            throw new InvalidArgumentException("Необходимо подтвердить фото {$label} одометра.");
+        }
     }
 
     private function generateNumber(): string
@@ -210,4 +236,3 @@ class WaybillStateService
         ];
     }
 }
-

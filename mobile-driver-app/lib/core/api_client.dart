@@ -32,6 +32,30 @@ class ApiClient {
     return _decode(response);
   }
 
+  Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required Map<String, String> fields,
+    required String fileField,
+    required List<int> fileBytes,
+    required String filename,
+  }) async {
+    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
+    request.headers.addAll(await _authHeaders());
+    request.fields.addAll(fields);
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        fileField,
+        fileBytes,
+        filename: filename,
+      ),
+    );
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+
+    return _decode(response);
+  }
+
   Future<void> login(String login, String password) async {
     final data = await postJson('/auth/driver/login', {
       'login': login,
@@ -59,15 +83,35 @@ class ApiClient {
     };
   }
 
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await sessionStore.readToken();
+
+    return {
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
   Map<String, dynamic> _decode(http.Response response) {
     final decoded = response.body.isEmpty
         ? <String, dynamic>{}
         : jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode >= 400) {
+      final errors = decoded['errors'];
+      String? firstError;
+      if (errors is Map && errors.isNotEmpty) {
+        final value = errors.values.first;
+        if (value is List && value.isNotEmpty) {
+          firstError = value.first.toString();
+        } else if (value != null) {
+          firstError = value.toString();
+        }
+      }
+
       throw ApiException(
         statusCode: response.statusCode,
-        message: decoded['message']?.toString() ?? 'Ошибка запроса',
+        message: firstError ?? decoded['message']?.toString() ?? 'Ошибка запроса',
       );
     }
 
@@ -84,4 +128,3 @@ class ApiException implements Exception {
   @override
   String toString() => message;
 }
-

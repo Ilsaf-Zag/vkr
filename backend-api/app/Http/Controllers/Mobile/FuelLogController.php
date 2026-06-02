@@ -24,7 +24,6 @@ class FuelLogController extends Controller
             'fuel_type' => ['required', 'in:petrol,gas,diesel'],
             'liters' => ['required', 'numeric', 'min:0.01'],
             'cost' => ['required', 'numeric', 'min:0'],
-            'odometer' => ['required', 'integer', 'min:0'],
             'fueled_at' => ['nullable', 'date'],
             'comment' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -40,6 +39,10 @@ class FuelLogController extends Controller
             'waybill_id' => $waybill->id,
             'vehicle_id' => $waybill->vehicle_id,
             'driver_id' => $waybill->driver_id,
+            'odometer' => $waybill->odometer_end
+                ?? $waybill->odometer_start
+                ?? $waybill->vehicle?->current_mileage
+                ?? 0,
             'fueled_at' => $payload['fueled_at'] ?? now(),
         ]);
 
@@ -55,4 +58,3 @@ class FuelLogController extends Controller
             ->firstOrFail();
     }
 }
-

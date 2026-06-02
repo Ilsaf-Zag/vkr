@@ -16,6 +16,9 @@
 | GET | `/api/mobile/current-work-order` | активный план-наряд |
 | POST | `/api/mobile/waybills/open` | открыть путевой лист |
 | GET | `/api/mobile/workflow` | восстановить текущий этап |
+| POST | `/api/mobile/waybills/{waybill}/odometer-captures` | загрузить фото одометра и запустить OCR |
+| POST | `/api/mobile/waybills/{waybill}/odometer-captures/{capture}/confirm` | подтвердить или исправить значение одометра |
+| GET | `/api/mobile/waybills/{waybill}/odometer-control` | получить состояние контроля одометра |
 | POST | `/api/mobile/inspections/medical/request` | запросить медосмотр |
 | POST | `/api/mobile/inspections/technical/request` | запросить техосмотр |
 | POST | `/api/mobile/waybills/initial-print-done` | отметить первую печать |
@@ -40,6 +43,7 @@
 | CRUD | `/api/admin/work-orders` | план-наряды |
 | GET | `/api/admin/waybills` | список путевых листов |
 | GET | `/api/admin/waybills/{id}` | карточка путевого листа |
+| GET | `/api/admin/waybills/{id}/odometer-control` | фото, OCR и контроль пробега по одометру |
 | GET | `/api/admin/waybills/{id}/pdf/initial` | PDF первой печати |
 | GET | `/api/admin/waybills/{id}/pdf/final` | PDF итоговых данных |
 | GET | `/api/admin/medical-inspections` | заявки и история медосмотров |
@@ -76,4 +80,3 @@
 | `inspection.status.changed` | водитель, админка | изменение статуса осмотра |
 | `waybill.status.changed` | водитель, админка | изменение статуса путевого листа |
 | `dashboard.metrics.updated` | админка | обновление счетчиков |
-

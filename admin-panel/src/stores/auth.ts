@@ -38,8 +38,14 @@ export const useAuthStore = defineStore('auth', {
         return;
       }
 
-      const { data } = await apiClient.get('/auth/me');
-      this.user = data.user;
+      try {
+        const { data } = await apiClient.get('/auth/me');
+        this.user = data.user;
+      } catch (error) {
+        this.token = null;
+        this.user = null;
+        localStorage.removeItem('azyk_admin_token');
+      }
     },
     async logout() {
       if (this.token) {
@@ -52,4 +58,3 @@ export const useAuthStore = defineStore('auth', {
     },
   },
 });
-

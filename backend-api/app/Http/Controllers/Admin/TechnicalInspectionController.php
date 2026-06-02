@@ -20,11 +20,11 @@ class TechnicalInspectionController extends Controller
             ->latest('requested_at');
 
         if ($request->filled('status')) {
-            $query->where('status', $request->string('status'));
+            $query->where('status', $request->string('status')->toString());
         }
 
         if ($request->filled('type')) {
-            $query->where('type', $request->string('type'));
+            $query->where('type', $request->string('type')->toString());
         }
 
         return response()->json(['items' => $query->paginate(20)]);
@@ -48,4 +48,3 @@ class TechnicalInspectionController extends Controller
         ]);
     }
 }
-

@@ -9,6 +9,7 @@
 - `mobile-driver-app` — мобильное приложение водителя на Flutter;
 - PostgreSQL — основная база данных;
 - Redis — кэш, очереди и WebSocket-события;
+- `ocr-service` — вспомогательный Python/PaddleOCR-модуль для распознавания фото одометра;
 - Docker — единое окружение разработки и демонстрации.
 
 ## Назначение
@@ -22,6 +23,7 @@
 - контроль смены водителя;
 - учет заправок;
 - имитацию GPS/ГЛОНАСС-мониторинга;
+- распознавание показаний одометра по фото при начале и завершении смены;
 - формирование PDF путевых листов;
 - отчеты и экспорт в Excel;
 - администрирование пользователей и справочников.
@@ -37,6 +39,7 @@ flowchart LR
     API --> DB["PostgreSQL"]
     API --> Redis["Redis"]
     API --> Storage["File storage"]
+    API --> OCR["Python PaddleOCR<br/>Фото одометра"]
     API --> PDF["Blade PDF templates"]
     API --> WS["WebSocket"]
     WS --> Admin
@@ -68,6 +71,7 @@ docs/
 - [Структура базы данных](docs/database.md)
 - [REST API и WebSocket](docs/api.md)
 - [PDF и отчеты](docs/pdf-and-reports.md)
+- [AI/OCR-контроль одометра](docs/ai-odometer-ocr.md)
 - [Диаграммы для ВКР](docs/diploma-diagrams.md)
 
 ## Статус заготовки
@@ -95,11 +99,12 @@ docker compose up -d --build
 
 - backend API: `http://localhost:8000/api`;
 - web-админка: `http://localhost:5173`;
+- OCR-сервис: `http://localhost:8001/health`;
 - PostgreSQL: `localhost:5432`;
 - Redis: `localhost:6379`;
 - WebSocket: `localhost:8081`.
 
-Первый запуск выполняет контейнер `backend-setup`: он готовит Laravel внутри Docker, накатывает миграции и заполняет тестовые данные. Локально PHP, Composer, PostgreSQL, Redis и nginx ставить не нужно.
+Первый запуск выполняет контейнер `backend-setup`: он готовит Laravel внутри Docker, накатывает миграции и заполняет тестовые данные. OCR-контейнер при первом распознавании скачает модели PaddleOCR в Docker volume. Локально PHP, Composer, PostgreSQL, Redis, Python, nginx и PaddleOCR ставить не нужно.
 
 ## Доступы
 
@@ -120,7 +125,7 @@ docker compose up -d --build
 
 ## Мобильное приложение
 
-Мобильное приложение не открывается как сайт, потому что это Flutter-приложение для телефона или эмулятора.
+Основной вариант использования — Flutter-приложение на телефоне или эмуляторе.
 
 Запуск на Android-эмуляторе:
 
@@ -138,10 +143,12 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://localhost:8000/api
 ```
 
-Сборка debug APK через Docker без локальной установки Flutter:
+Сборка APK локальным Flutter:
 
 ```bash
-docker compose --profile mobile run --rm mobile-build
+cd mobile-driver-app
+flutter pub get
+flutter build apk --debug --dart-define=API_BASE_URL=http://IP_КОМПЬЮТЕРА:8000/api
 ```
 
-Контейнер сам создаст Android-каркас, если его еще нет, скачает зависимости и соберет APK. Файл будет создан внутри `mobile-driver-app/build/app/outputs/flutter-apk/app-debug.apk`.
+APK будет создан в `mobile-driver-app/build/app/outputs/flutter-apk/app-debug.apk`.

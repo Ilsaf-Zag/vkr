@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Mobile\FuelLogController as MobileFuelLogController;
 use App\Http\Controllers\Mobile\GpsController as MobileGpsController;
 use App\Http\Controllers\Mobile\InspectionController as MobileInspectionController;
+use App\Http\Controllers\Mobile\OdometerCaptureController;
 use App\Http\Controllers\Mobile\ShiftController;
 use App\Http\Controllers\Mobile\WorkflowController;
 use App\Http\Controllers\Reports\ReportController;
@@ -31,6 +32,9 @@ Route::prefix('mobile')
         Route::get('current-work-order', [WorkflowController::class, 'currentWorkOrder']);
         Route::get('workflow', [WorkflowController::class, 'workflow']);
         Route::post('waybills/open', [WorkflowController::class, 'openWaybill']);
+        Route::post('waybills/{waybill}/odometer-captures', [OdometerCaptureController::class, 'store']);
+        Route::post('waybills/{waybill}/odometer-captures/{capture}/confirm', [OdometerCaptureController::class, 'confirm']);
+        Route::get('waybills/{waybill}/odometer-control', [OdometerCaptureController::class, 'control']);
 
         Route::post('inspections/medical/request', [MobileInspectionController::class, 'requestMedical']);
         Route::post('inspections/technical/request', [MobileInspectionController::class, 'requestTechnical']);
@@ -55,7 +59,7 @@ Route::prefix('admin')
 
         Route::middleware('role:admin')->group(function () {
             Route::apiResource('users', CrudPlaceholderController::class);
-            Route::post('users/{id}/change-password', [CrudPlaceholderController::class, 'update']);
+            Route::post('users/{id}/change-password', [CrudPlaceholderController::class, 'changePassword']);
             Route::get('audit-logs', [CrudPlaceholderController::class, 'index']);
         });
 
@@ -63,10 +67,11 @@ Route::prefix('admin')
             Route::apiResource('drivers', CrudPlaceholderController::class);
             Route::apiResource('vehicles', CrudPlaceholderController::class)->except(['index', 'show']);
             Route::apiResource('work-orders', CrudPlaceholderController::class);
-            Route::post('drivers/{id}/change-password', [CrudPlaceholderController::class, 'update']);
+            Route::post('drivers/{id}/change-password', [CrudPlaceholderController::class, 'changePassword']);
 
             Route::get('waybills', [WaybillController::class, 'index']);
             Route::get('waybills/{waybill}', [WaybillController::class, 'show']);
+            Route::get('waybills/{waybill}/odometer-control', [WaybillController::class, 'odometerControl']);
             Route::get('waybills/{waybill}/pdf/initial', [WaybillController::class, 'initialPdf']);
             Route::get('waybills/{waybill}/pdf/final', [WaybillController::class, 'finalPdf']);
 

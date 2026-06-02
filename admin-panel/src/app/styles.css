@@ -48,6 +48,16 @@ button {
   background: #b42318;
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button.compact {
+  min-height: 30px;
+  padding: 0 10px;
+}
+
 .field {
   display: grid;
   gap: 6px;
@@ -82,6 +92,11 @@ button {
   margin: 0;
   font-size: 22px;
   line-height: 1.2;
+}
+
+.page-description {
+  margin: 5px 0 0;
+  color: #687486;
 }
 
 .toolbar {
@@ -122,6 +137,52 @@ button {
   color: #687486;
 }
 
+.actions,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.form-actions {
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.view-content {
+  display: grid;
+  gap: 10px;
+}
+
+.view-row {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.view-label {
+  color: #5d6878;
+  font-weight: 700;
+}
+
+.error-message {
+  margin: 8px 0 0;
+  color: #b42318;
+}
+
+.checkbox-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-field input {
+  width: auto;
+}
+
 .grid {
   display: grid;
   gap: 14px;
@@ -141,4 +202,3 @@ button {
     grid-template-columns: 1fr;
   }
 }
-

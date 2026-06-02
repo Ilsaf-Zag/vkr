@@ -30,9 +30,10 @@ class GpsTracker {
 
   Future<void> sendPoint() async {
     try {
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+      final position = await _readPosition();
+      if (position == null) {
+        return;
+      }
 
       await apiClient.postJson('/mobile/gps-points', {
         'latitude': position.latitude,
@@ -46,20 +47,43 @@ class GpsTracker {
     }
   }
 
+  Future<Position?> _readPosition() async {
+    try {
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 8),
+      );
+    } catch (_) {
+      try {
+        return await Geolocator.getLastKnownPosition();
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
   Future<bool> _ensurePermission() async {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    bool serviceEnabled;
+    try {
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    } catch (_) {
+      return false;
+    }
 
     if (!serviceEnabled) {
       return false;
     }
 
-    var permission = await Geolocator.checkPermission();
+    try {
+      var permission = await Geolocator.checkPermission();
 
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      return permission == LocationPermission.always || permission == LocationPermission.whileInUse;
+    } catch (_) {
+      return false;
     }
-
-    return permission == LocationPermission.always || permission == LocationPermission.whileInUse;
   }
 }
-

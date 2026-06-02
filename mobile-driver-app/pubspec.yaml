@@ -13,6 +13,7 @@ dependencies:
   http: ^1.2.2
   flutter_secure_storage: ^9.2.2
   geolocator: ^13.0.2
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -21,4 +22,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-

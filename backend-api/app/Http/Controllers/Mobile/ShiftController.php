@@ -30,12 +30,8 @@ class ShiftController extends Controller
 
     public function finishTrip(Request $request)
     {
-        $payload = $request->validate([
-            'odometer_end' => ['nullable', 'integer', 'min:0'],
-        ]);
-
         return response()->json([
-            'waybill' => $this->waybills->finishTrip($this->activeWaybill($request), $payload['odometer_end'] ?? null),
+            'waybill' => $this->waybills->finishTrip($this->activeWaybill($request)),
         ]);
     }
 
@@ -66,4 +62,3 @@ class ShiftController extends Controller
             ->firstOrFail();
     }
 }
-

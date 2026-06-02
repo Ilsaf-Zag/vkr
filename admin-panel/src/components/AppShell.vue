@@ -17,11 +17,19 @@ import {
   Users,
   Wrench,
 } from 'lucide-vue-next';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { apiClient } from '../api/client';
 import { useAuthStore } from '../stores/auth';
+import { enumLabel, listItems } from '../utils/api';
 
 const auth = useAuthStore();
 const router = useRouter();
+const notifications = ref<{ id: string; title: string; text: string; to: string }[]>([]);
+const knownMedical = new Set<number>();
+const knownTechnical = new Set<number>();
+let firstNotificationScan = true;
+let notificationTimer: number | undefined;
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -41,11 +49,77 @@ const navItems = [
 ];
 
 const canSee = (roles?: string[]) => !roles || (auth.user && roles.includes(auth.user.role));
+const canPoll = (roles: string[]) => !!auth.user && roles.includes(auth.user.role);
 
 async function logout() {
   await auth.logout();
   await router.push('/login');
 }
+
+function pushNotification(title: string, text: string, to: string) {
+  const id = `${to}-${Date.now()}-${Math.random()}`;
+  notifications.value = [{ id, title, text, to }, ...notifications.value].slice(0, 4);
+  window.setTimeout(() => dismissNotification(id), 12000);
+}
+
+function dismissNotification(id: string) {
+  notifications.value = notifications.value.filter((item) => item.id !== id);
+}
+
+async function openNotification(notification: { id: string; to: string }) {
+  dismissNotification(notification.id);
+  await router.push(notification.to);
+}
+
+async function pollInspectionNotifications() {
+  const tasks: Promise<void>[] = [];
+
+  if (canPoll(['admin', 'dispatcher', 'medic'])) {
+    tasks.push(apiClient.get('/admin/medical-inspections', { params: { status: 'pending' } } as any).then(({ data }) => {
+      for (const item of listItems(data)) {
+        if (knownMedical.has(item.id)) continue;
+        knownMedical.add(item.id);
+        if (!firstNotificationScan) {
+          pushNotification(
+            'Новая заявка на медосмотр',
+            `${item.driver?.full_name ?? 'Водитель'} · ${enumLabel(item.type)}`,
+            '/medical-inspections',
+          );
+        }
+      }
+    }));
+  }
+
+  if (canPoll(['admin', 'dispatcher', 'mechanic'])) {
+    tasks.push(apiClient.get('/admin/technical-inspections', { params: { status: 'pending' } } as any).then(({ data }) => {
+      for (const item of listItems(data)) {
+        if (knownTechnical.has(item.id)) continue;
+        knownTechnical.add(item.id);
+        if (!firstNotificationScan) {
+          pushNotification(
+            'Новая заявка на техосмотр',
+            `${item.driver?.full_name ?? 'Водитель'} · ${item.vehicle?.plate_number ?? 'Автомобиль'}`,
+            '/technical-inspections',
+          );
+        }
+      }
+    }));
+  }
+
+  await Promise.allSettled(tasks);
+  firstNotificationScan = false;
+}
+
+onMounted(() => {
+  pollInspectionNotifications();
+  notificationTimer = window.setInterval(pollInspectionNotifications, 10000);
+});
+
+onBeforeUnmount(() => {
+  if (notificationTimer) {
+    window.clearInterval(notificationTimer);
+  }
+});
 </script>
 
 <template>
@@ -76,7 +150,7 @@ async function logout() {
       <header class="topbar">
         <div>
           <strong>{{ auth.user?.full_name }}</strong>
-          <span>{{ auth.user?.role }}</span>
+          <span>{{ enumLabel(auth.user?.role) }}</span>
         </div>
         <button class="button secondary" type="button" @click="logout">
           <LogOut :size="18" />
@@ -87,6 +161,19 @@ async function logout() {
       <section class="content-inner">
         <slot />
       </section>
+
+      <div class="toast-stack" aria-live="polite">
+        <button
+          v-for="notification in notifications"
+          :key="notification.id"
+          class="toast"
+          type="button"
+          @click="openNotification(notification)"
+        >
+          <strong>{{ notification.title }}</strong>
+          <span>{{ notification.text }}</span>
+        </button>
+      </div>
     </main>
   </div>
 </template>
@@ -147,6 +234,7 @@ async function logout() {
 
 .content {
   min-width: 0;
+  position: relative;
 }
 
 .topbar {
@@ -169,6 +257,38 @@ async function logout() {
   padding: 22px;
 }
 
+.toast-stack {
+  position: fixed;
+  top: 78px;
+  right: 22px;
+  z-index: 40;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.toast {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #b7d7dc;
+  border-radius: 8px;
+  background: #f1fbfb;
+  color: #18212f;
+  text-align: left;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+}
+
+.toast strong {
+  font-size: 14px;
+}
+
+.toast span {
+  color: #4a5567;
+  font-size: 13px;
+}
+
 @media (max-width: 1000px) {
   .shell {
     grid-template-columns: 1fr;
@@ -183,4 +303,3 @@ async function logout() {
   }
 }
 </style>
-

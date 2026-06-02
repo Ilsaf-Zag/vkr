@@ -33,5 +33,14 @@ class FuelLog extends Model
     {
         return $this->belongsTo(Waybill::class);
     }
-}
 
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
+    }
+
+    public function vehicle()
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
+}

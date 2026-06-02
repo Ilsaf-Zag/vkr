@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { enumLabel } from '../utils/api';
+
 defineProps<{
   value: string;
 }>();
@@ -6,7 +8,7 @@ defineProps<{
 
 <template>
   <span class="badge" :data-status="value">
-    {{ value }}
+    {{ enumLabel(value) }}
   </span>
 </template>
 
@@ -43,4 +45,3 @@ defineProps<{
   color: #b42318;
 }
 </style>
-

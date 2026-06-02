@@ -39,10 +39,6 @@ class WorkflowController extends Controller
 
     public function openWaybill(Request $request)
     {
-        $payload = $request->validate([
-            'odometer_start' => ['nullable', 'integer', 'min:0'],
-        ]);
-
         $driver = $request->user()->driver;
         $workOrder = $this->waybills->findCurrentWorkOrder($driver);
 
@@ -52,7 +48,7 @@ class WorkflowController extends Controller
             ], 422);
         }
 
-        $waybill = $this->waybills->openFromWorkOrder($driver, $workOrder, $payload['odometer_start'] ?? null);
+        $waybill = $this->waybills->openFromWorkOrder($driver, $workOrder);
 
         return response()->json(['waybill' => $waybill], 201);
     }
@@ -66,4 +62,3 @@ class WorkflowController extends Controller
             ->first();
     }
 }
-

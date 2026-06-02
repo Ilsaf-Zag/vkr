@@ -30,6 +30,10 @@ class InspectionService
 
         return DB::transaction(function () use ($waybill, $type, $expected, $target) {
             $this->waybillState->ensureStatus($waybill, $expected);
+            $this->waybillState->ensureOdometerCaptureConfirmed(
+                $waybill,
+                $type === InspectionType::PreTrip ? 'start' : 'finish',
+            );
             $this->waybillState->transition($waybill, $target);
 
             return MedicalInspection::query()->create([
@@ -129,4 +133,3 @@ class InspectionService
         });
     }
 }
-

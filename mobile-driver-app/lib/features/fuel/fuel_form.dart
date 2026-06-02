@@ -19,7 +19,6 @@ class FuelForm extends StatefulWidget {
 class _FuelFormState extends State<FuelForm> {
   final litersController = TextEditingController();
   final costController = TextEditingController();
-  final odometerController = TextEditingController();
   final commentController = TextEditingController();
   String fuelType = 'diesel';
   bool loading = false;
@@ -29,7 +28,6 @@ class _FuelFormState extends State<FuelForm> {
   void dispose() {
     litersController.dispose();
     costController.dispose();
-    odometerController.dispose();
     commentController.dispose();
     super.dispose();
   }
@@ -45,13 +43,11 @@ class _FuelFormState extends State<FuelForm> {
         'fuel_type': fuelType,
         'liters': double.parse(litersController.text.replaceAll(',', '.')),
         'cost': double.parse(costController.text.replaceAll(',', '.')),
-        'odometer': int.parse(odometerController.text),
         'comment': commentController.text.trim().isEmpty ? null : commentController.text.trim(),
       });
 
       litersController.clear();
       costController.clear();
-      odometerController.clear();
       commentController.clear();
       await widget.onSaved();
     } catch (exception) {
@@ -97,12 +93,6 @@ class _FuelFormState extends State<FuelForm> {
             ),
             const SizedBox(height: 10),
             TextField(
-              controller: odometerController,
-              decoration: const InputDecoration(labelText: 'Одометр'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 10),
-            TextField(
               controller: commentController,
               decoration: const InputDecoration(labelText: 'Комментарий'),
               maxLines: 2,
@@ -125,4 +115,3 @@ class _FuelFormState extends State<FuelForm> {
     );
   }
 }
-

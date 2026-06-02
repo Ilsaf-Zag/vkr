@@ -77,5 +77,19 @@ class Waybill extends Model
     {
         return $this->hasMany(GpsPoint::class);
     }
-}
 
+    public function odometerCaptures()
+    {
+        return $this->hasMany(WaybillOdometerCapture::class);
+    }
+
+    public function startOdometerCapture()
+    {
+        return $this->hasOne(WaybillOdometerCapture::class)->where('capture_type', 'start');
+    }
+
+    public function finishOdometerCapture()
+    {
+        return $this->hasOne(WaybillOdometerCapture::class)->where('capture_type', 'finish');
+    }
+}

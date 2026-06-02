@@ -42,22 +42,22 @@ enum WaybillStatus: string
     public function mobileStep(): string
     {
         return match ($this) {
-            self::Opened,
-            self::PreMedRequested => 'pre_trip_medical',
+            self::Opened => 'pre_trip_medical',
+            self::PreMedRequested => 'pre_trip_medical_waiting',
             self::PreMedRejected => 'pre_trip_medical_rejected',
-            self::PreMedApproved,
-            self::PreTechRequested => 'pre_trip_technical',
+            self::PreMedApproved => 'pre_trip_technical',
+            self::PreTechRequested => 'pre_trip_technical_waiting',
             self::PreTechRejected => 'pre_trip_technical_rejected',
             self::PreTechApproved,
             self::InitialPrintPending => 'initial_print',
             self::InitialPrinted => 'start_shift',
             self::ShiftStarted,
             self::ShiftInProgress => 'active_shift',
-            self::ReturnStarted,
-            self::PostMedRequested => 'post_trip_medical',
+            self::ReturnStarted => 'post_trip_medical',
+            self::PostMedRequested => 'post_trip_medical_waiting',
             self::PostMedRejected => 'post_trip_medical_rejected',
-            self::PostMedApproved,
-            self::PostTechRequested => 'post_trip_technical',
+            self::PostMedApproved => 'post_trip_technical',
+            self::PostTechRequested => 'post_trip_technical_waiting',
             self::PostTechRejected => 'post_trip_technical_rejected',
             self::PostTechApproved,
             self::FinalPrintPending => 'final_print',
@@ -67,4 +67,3 @@ enum WaybillStatus: string
         };
     }
 }
-
