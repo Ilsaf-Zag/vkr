@@ -26,14 +26,47 @@ docker compose up -d --build
 
 После запуска:
 
-- админка: `http://localhost:5173`;
-- API: `http://localhost:8000/api`;
+- админка через backend: `http://localhost`;
+- API: `http://localhost/api`;
 - OCR: `http://localhost:8001/health`;
 - WebSocket: `localhost:8081`;
 - PostgreSQL: `localhost:5432`;
 - Redis: `localhost:6379`.
 
 При первом запуске контейнер `backend-setup` выполняет миграции и заполняет тестовые данные. Первый запрос распознавания одометра может выполняться дольше обычного, потому что OCR-контейнер подготавливает модели.
+
+## Сборка админки в backend
+
+Production-сборка админки собирается одноразовым контейнером `admin-build` и отдаётся nginx по адресу `http://localhost`.
+
+Отдельный dev-контейнер админки по умолчанию не запускается. В обычном режиме Vue-приложение только собирается и копируется в volume для nginx.
+
+Если нужно открыть систему с другого устройства, создай файл `.env` в корне проекта:
+
+```bash
+cp .env.example .env
+```
+
+И укажи IP компьютера:
+
+```env
+ADMIN_HOST=IP_КОМПЬЮТЕРА
+HTTP_PORT=80
+ADMIN_API_URL=/api
+ADMIN_WS_PORT=8081
+```
+
+После изменения `.env` пересобери админку:
+
+```bash
+docker compose up -d --build --force-recreate admin-build nginx
+```
+
+Если нужен dev-режим админки на `http://localhost:5173`, запусти профиль разработки:
+
+```bash
+docker compose --profile dev up -d admin-panel
+```
 
 ## Доступы
 
@@ -71,7 +104,7 @@ ipconfig getifaddr en1
 ```bash
 cd "/Users/ilsaf/Documents/вкр ил/mobile-driver-app"
 flutter pub get
-flutter run -d DEVICE_ID --dart-define=API_BASE_URL=http://IP_КОМПЬЮТЕРА:8000/api
+flutter run -d DEVICE_ID --dart-define=API_BASE_URL=http://IP_КОМПЬЮТЕРА/api
 ```
 
 Сборка APK:
@@ -79,7 +112,7 @@ flutter run -d DEVICE_ID --dart-define=API_BASE_URL=http://IP_КОМПЬЮТЕР
 ```bash
 cd "/Users/ilsaf/Documents/вкр ил/mobile-driver-app"
 flutter pub get
-flutter build apk --debug --dart-define=API_BASE_URL=http://IP_КОМПЬЮТЕРА:8000/api
+flutter build apk --debug --dart-define=API_BASE_URL=http://IP_КОМПЬЮТЕРА/api
 ```
 
 Готовый файл:
@@ -91,7 +124,7 @@ mobile-driver-app/build/app/outputs/flutter-apk/app-debug.apk
 Для Android-эмулятора вместо IP компьютера используется адрес `10.0.2.2`:
 
 ```bash
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2/api
 ```
 
 ## Полезные команды

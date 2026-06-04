@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+export const apiBaseUrl = import.meta.env.VITE_API_URL || `${window.location.origin}/api`;
+
+const adminBasePath = import.meta.env.BASE_URL || '/';
+
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api',
+  baseURL: apiBaseUrl,
   timeout: 15000,
   headers: {
     Accept: 'application/json',
@@ -25,7 +29,7 @@ apiClient.interceptors.response.use(
     if (status === 401 || status === 403) {
       localStorage.removeItem('azyk_admin_token');
       try {
-        window.location.href = '/login';
+        window.location.href = `${adminBasePath.replace(/\/$/, '')}/login`;
       } catch {
       }
     }

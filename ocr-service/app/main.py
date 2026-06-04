@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import re
+import threading
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -13,18 +15,34 @@ from paddleocr import PaddleOCR
 app = FastAPI(title="AZYK Odometer OCR")
 
 ocr_model: PaddleOCR | None = None
+ocr_model_lock = threading.Lock()
+ocr_model_error: str | None = None
 
 
 def get_model() -> PaddleOCR:
-    global ocr_model
+    global ocr_model, ocr_model_error
     if ocr_model is None:
-        ocr_model = PaddleOCR(use_angle_cls=True, lang="en", show_log=False)
+        with ocr_model_lock:
+            if ocr_model is None:
+                ocr_model = PaddleOCR(use_angle_cls=True, lang="en", show_log=False)
+                ocr_model_error = None
     return ocr_model
 
 
 @app.on_event("startup")
 def warm_up_model() -> None:
-    get_model()
+    threading.Thread(target=warm_up_model_with_retry, daemon=True).start()
+
+
+def warm_up_model_with_retry() -> None:
+    global ocr_model_error
+    for attempt in range(1, 6):
+        try:
+            get_model()
+            return
+        except Exception as exc:
+            ocr_model_error = str(exc)
+            time.sleep(min(attempt * 15, 60))
 
 
 def preprocess(image_path: str) -> str:
@@ -105,8 +123,8 @@ def extract_candidates(lines: list[tuple[str, float | None]]) -> list[dict[str, 
 
 
 @app.get("/health")
-def health() -> dict[str, bool]:
-    return {"ok": True}
+def health() -> dict[str, Any]:
+    return {"ok": True, "model_ready": ocr_model is not None, "model_error": ocr_model_error}
 
 
 @app.post("/recognize")

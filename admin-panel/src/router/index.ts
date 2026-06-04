@@ -17,7 +17,7 @@ import AuditView from '../views/audit/AuditView.vue';
 import SettingsView from '../views/settings/SettingsView.vue';
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/login', name: 'login', component: LoginView },
     { path: '/', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true } },
@@ -54,4 +54,3 @@ router.beforeEach(async (to) => {
     return { name: 'dashboard' };
   }
 });
-

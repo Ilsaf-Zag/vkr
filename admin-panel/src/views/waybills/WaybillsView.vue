@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Eye, Printer } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
-import { apiClient } from '../../api/client';
+import { apiBaseUrl, apiClient } from '../../api/client';
 import AppShell from '../../components/AppShell.vue';
 import Modal from '../../components/Modal.vue';
 import RegistryPage from '../../components/RegistryPage.vue';
@@ -90,8 +90,7 @@ function controlStatusLabel(value?: string | null) {
 function fileUrl(value?: string | null) {
   if (!value) return '';
   if (value.startsWith('http')) return value;
-  const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api';
-  return `${apiUrl.replace(/\/api\/?$/, '')}${value}`;
+  return `${apiBaseUrl.replace(/\/api\/?$/, '')}${value}`;
 }
 </script>
 

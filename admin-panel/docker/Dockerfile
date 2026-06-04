@@ -2,16 +2,9 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Копируем package.json и устанавливаем зависимости
 COPY package*.json ./
+RUN npm ci --include=optional
 
-# Устанавливаем все зависимости с флагом для ARM/разных архитектур
-RUN npm install --include=optional
-
-# Если ошибка сохраняется, добавить флаг force:
-# RUN npm install --force --include=optional
-
-# Копируем исходный код
 COPY . .
 
 EXPOSE 5173
