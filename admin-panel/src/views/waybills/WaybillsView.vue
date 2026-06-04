@@ -89,8 +89,18 @@ function controlStatusLabel(value?: string | null) {
 
 function fileUrl(value?: string | null) {
   if (!value) return '';
-  if (value.startsWith('http')) return value;
-  return `${apiBaseUrl.replace(/\/api\/?$/, '')}${value}`;
+  const fallbackOrigin = apiBaseUrl.replace(/\/api\/?$/, '') || window.location.origin;
+
+  if (value.startsWith('http')) {
+    const url = new URL(value);
+    if (['localhost', '127.0.0.1', '0.0.0.0'].includes(url.hostname)) {
+      return `${fallbackOrigin}${url.pathname}`;
+    }
+
+    return value;
+  }
+
+  return `${fallbackOrigin}${value}`;
 }
 </script>
 

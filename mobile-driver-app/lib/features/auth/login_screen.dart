@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'ООО АЗЫК',
+                        'АЗЫК',
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 4),

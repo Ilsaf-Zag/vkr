@@ -1,11 +1,11 @@
 {
-    "name": "Мобильное приложение водителя ООО АЗЫК",
+    "name": "Мобильное приложение водителя АЗЫК",
     "short_name": "АЗЫК Водитель",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Мобильное приложение водителя ООО АЗЫК.",
+    "description": "Мобильное приложение водителя АЗЫК.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

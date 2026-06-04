@@ -28,7 +28,7 @@ async function submit() {
       <div class="login-title">
         <LockKeyhole :size="24" />
         <div>
-          <h1>ООО АЗЫК</h1>
+          <h1>АЗЫК</h1>
           <p>Административная панель</p>
         </div>
       </div>

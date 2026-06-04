@@ -128,7 +128,7 @@ onBeforeUnmount(() => {
       <div class="brand">
         <ShieldCheck :size="24" />
         <div>
-          <strong>ООО АЗЫК</strong>
+          <strong>АЗЫК</strong>
           <span>Автотранспорт</span>
         </div>
       </div>

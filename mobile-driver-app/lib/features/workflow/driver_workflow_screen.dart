@@ -17,6 +17,43 @@ String fuelTypeLabel(dynamic value) {
   };
 }
 
+String shiftLabel(dynamic value) {
+  return switch (value?.toString()) {
+    'day' => 'Дневная',
+    'night' => 'Ночная',
+    _ => value?.toString() ?? '—',
+  };
+}
+
+String dateLabel(dynamic value) {
+  final text = value?.toString();
+  if (text == null || text.isEmpty) {
+    return '—';
+  }
+
+  if (text.contains('T')) {
+    final parsed = DateTime.tryParse(text)?.toLocal();
+    if (parsed != null) {
+      return _formatDate(parsed);
+    }
+  }
+
+  final dateOnly = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$').firstMatch(text);
+  if (dateOnly != null) {
+    return '${dateOnly.group(3)}.${dateOnly.group(2)}.${dateOnly.group(1)}';
+  }
+
+  final parsed = DateTime.tryParse(text);
+  return parsed == null ? text : _formatDate(parsed.toLocal());
+}
+
+String _formatDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+
+  return '$day.$month.${date.year}';
+}
+
 class DriverWorkflowScreen extends StatefulWidget {
   const DriverWorkflowScreen({
     required this.apiClient,
@@ -203,7 +240,7 @@ class _DriverWorkflowScreenState extends State<DriverWorkflowScreen> {
         ),
       WorkflowStep.initialPrint => StepPanel(
           title: 'Печать путевого листа',
-          text: 'Имитация печати займет 5 секунд.',
+          text: '',
           actionLabel: 'Распечатать ПЛ',
           onAction: () => printImitation('/mobile/waybills/initial-print-done'),
         ),
@@ -256,7 +293,7 @@ class _DriverWorkflowScreenState extends State<DriverWorkflowScreen> {
         ),
       WorkflowStep.finalPrint => StepPanel(
           title: 'Печать итоговых данных',
-          text: 'Имитация печати займет 5 секунд.',
+          text: '',
           actionLabel: 'Распечатать данные',
           onAction: () => printImitation('/mobile/waybills/final-print-done'),
         ),
@@ -382,8 +419,8 @@ class _WorkOrderPanelState extends State<WorkOrderPanel> {
             const SizedBox(height: 12),
             InfoRow(label: 'Водитель', value: driver?['full_name']?.toString() ?? ''),
             InfoRow(label: 'Автомобиль', value: '${vehicle?['brand'] ?? ''} ${vehicle?['model'] ?? ''}'),
-            InfoRow(label: 'Дата', value: widget.workOrder?['date']?.toString() ?? ''),
-            InfoRow(label: 'Смена', value: widget.workOrder?['shift']?.toString() ?? ''),
+            InfoRow(label: 'Дата', value: dateLabel(widget.workOrder?['date'])),
+            InfoRow(label: 'Смена', value: shiftLabel(widget.workOrder?['shift'])),
             InfoRow(label: 'Маршрут', value: widget.workOrder?['route_name']?.toString() ?? ''),
             const SizedBox(height: 12),
             const Text('После открытия путевого листа нужно сфотографировать одометр и подтвердить значение.'),

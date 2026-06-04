@@ -19,7 +19,7 @@ class WorkOrder extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
+        'date' => 'date:Y-m-d',
         'status' => WorkOrderStatus::class,
     ];
 
@@ -43,4 +43,3 @@ class WorkOrder extends Model
         return $this->hasOne(Waybill::class);
     }
 }
-

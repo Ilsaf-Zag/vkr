@@ -200,7 +200,7 @@ class OdometerControlService
         return [
             'id' => $capture->id,
             'capture_type' => $capture->capture_type,
-            'image_url' => $capture->file ? Storage::disk($capture->file->disk)->url($capture->file->path) : null,
+            'image_url' => $capture->file ? '/storage/' . ltrim($capture->file->path, '/') : null,
             'ocr_raw_text' => $capture->ocr_raw_text ?? [],
             'ocr_candidates' => $capture->ocr_candidates ?? [],
             'ocr_value' => $capture->ocr_value,

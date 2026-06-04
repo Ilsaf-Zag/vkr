@@ -38,7 +38,7 @@ class WaybillStateService
                 [
                     'number' => $this->generateNumber(),
                     'date' => $workOrder->date,
-                    'organization_name' => 'ООО «АЗЫК»',
+                    'organization_name' => 'АЗЫК',
                     'driver_id' => $workOrder->driver_id,
                     'vehicle_id' => $workOrder->vehicle_id,
                     'route_name' => $workOrder->route_name,
